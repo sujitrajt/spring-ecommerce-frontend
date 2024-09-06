@@ -10,11 +10,37 @@ const Home = () => {
     const fetchData = async () => {
       try {
         const response = await axios.get("http://localhost:8080/api/products");
-        setProducts(response.data);
-        console.log(response.data);
+        const fetchedProducts = response.data;
+
+        // Fetch image after product data is fetched
+        const updatedProducts = await Promise.all(
+          fetchedProducts.map(async (product) => {
+            const imageUrl = await fetchImage(product.id);
+            return { ...product, imageUrl };
+          })
+        );
+
+        setProducts(updatedProducts); // Set products with image URLs
       } catch (error) {
         console.error("Error fetching data:", error);
         setIsError(true);
+      }
+    };
+
+    const fetchImage = async (productId) => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/product/${productId}/image`,
+          { responseType: "blob" }
+        );
+        const imageUrl = URL.createObjectURL(response.data);
+        return imageUrl; // Return the image URL
+      } catch (error) {
+        console.error(
+          `Error fetching image for product ID ${productId}:`,
+          error
+        );
+        return "placeholder-image-url"; // Return a placeholder if image fetch fails
       }
     };
 
@@ -38,11 +64,10 @@ const Home = () => {
             key={product.id}
             style={{
               width: "270px",
-              height: "210px",
+              height: "300px",
               boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
               borderRadius: "10px",
               overflow: "hidden",
-
               display: "flex",
               flexDirection: "column",
               justifyContent: "flex-start",
@@ -53,6 +78,17 @@ const Home = () => {
               to={`/product/${product.id}`}
               style={{ textDecoration: "none", color: "inherit" }}
             >
+              <img
+                src={product.imageUrl} // Use the imageUrl from the product object
+                alt={product.imageName}
+                style={{
+                  width: "100%",
+                  height: "100px",
+                  objectFit: "cover",
+                  padding: "5px",
+                  margin: "0",
+                }}
+              />
               <div
                 className="card-body"
                 style={{
@@ -91,12 +127,6 @@ const Home = () => {
                     {product.price}
                   </h5>
                 </div>
-                {/* <button
-                className="btn-hover color-9"
-                style={{ margin: "10px 25px 0px " }}
-              >
-                Add To Cart
-              </button> */}
               </div>
             </Link>
           </div>

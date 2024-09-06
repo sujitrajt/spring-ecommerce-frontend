@@ -7,6 +7,7 @@ const Product = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState({});
+  const [imageUrl, setImageUrl] = useState("");
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -14,12 +15,23 @@ const Product = () => {
           `http://localhost:8080/api/product/${id}`
         );
         setProduct(response.data);
+        if (response.data.imageName) {
+          fetchImage();
+        }
       } catch (error) {
         console.log(error);
       }
     };
+    const fetchImage = async () => {
+      const response = await axios.get(
+        `http://localhost:8080/api/product/${id}/image`,
+        { responseType: "blob" }
+      );
+      setImageUrl(URL.createObjectURL(response.data));
+    };
     fetchProduct();
   }, [id]);
+
   const deleteProduct = async (id) => {
     console.log(id);
     try {
@@ -36,6 +48,12 @@ const Product = () => {
   return (
     <>
       <div className="containers">
+        <img
+          className="left-column-img"
+          src={imageUrl}
+          alt={product.imageName}
+          style={{ width: "50%", height: "auto" }}
+        />
         <div className="right-column">
           <div className="product-description">
             <span>{product.category}</span>

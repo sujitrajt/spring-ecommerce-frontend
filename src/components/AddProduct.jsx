@@ -10,23 +10,34 @@ const AddProduct = () => {
     category: "",
     quantity: 0,
   });
+  const [image, setImage] = useState(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProduct({ ...product, [name]: value });
   };
+  const handleImageChange = (e) => {
+    console.log(e.target.files[0]);
+    setImage(e.target.files[0]);
+  };
 
   const submitHandler = (event) => {
     event.preventDefault();
-    console.log(product);
-    // Assuming `product` is a JavaScript object with the data you want to send
-    // const formData = new FormData();
-    // formData.append("product", JSON.stringify(product)); // Correct way to append JSON data
-
+    const formData = new FormData();
+    formData.append("imageFile", image);
+    formData.append(
+      "product",
+      new Blob([JSON.stringify(product)], { type: "application/json" })
+    );
+    // console.log(formData.get(product));
+    // const productBlob = formData.get("product");
+    // productBlob.text().then((productData) => {
+    //   console.log(JSON.parse(productData));
+    // });
     axios
-      .post("http://localhost:8080/api/product", product, {
+      .post("http://localhost:8080/api/product", formData, {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
       })
       .then((response) => {
@@ -84,7 +95,7 @@ const AddProduct = () => {
               id="description"
             />
           </div>
-          <div className="col-5">
+          <div className="col-6">
             <label className="form-label">
               <h6>Price</h6>
             </label>
@@ -120,7 +131,7 @@ const AddProduct = () => {
             </select>
           </div>
 
-          <div className="col-md-4">
+          <div className="col-md-6">
             <label className="form-label">
               <h6>Stock Quantity</h6>
             </label>
@@ -137,6 +148,16 @@ const AddProduct = () => {
           </div>
           {/* <input className='image-control' type="file" name='file' onChange={(e) => setProduct({...product, image: e.target.files[0]})} />
     <button className="btn btn-primary" >Add Photo</button>  */}
+          <div className="col-md-6">
+            <label className="form-label">
+              <h6>Image</h6>
+            </label>
+            <input
+              className="form-control"
+              type="file"
+              onChange={handleImageChange}
+            />
+          </div>
           <div className="col-12">
             <button
               type="submit"
